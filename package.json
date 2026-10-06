@@ -1,0 +1,19 @@
+{
+  "name": "trace-racer",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Racing game: draw your racing line, and your drawing speed becomes the car's speed",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "icons": "node scripts/render-icons.mjs",
+    "deploy": "npm run build && rsync -rv --delete dist/ staffan@ludo.tomtebo.org:/home/staffan/sites/traceracer.tomtebo.org/"
+  },
+  "devDependencies": {
+    "@fontsource/chakra-petch": "^5.3.0",
+    "playwright-core": "^1.63.0",
+    "vite": "^8.3.3"
+  }
+}

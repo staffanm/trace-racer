@@ -1,0 +1,17 @@
+{
+  "name": "Trace Racer",
+  "short_name": "Trace Racer",
+  "description": "Draw your racing line in one stroke, then watch your car drive it. Your drawing speed becomes the car's speed.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#2f6a3a",
+  "theme_color": "#2f6a3a",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

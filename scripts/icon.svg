@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect class="bg" width="512" height="512" fill="#2f6a3a"/>
+  <!-- an oval track with kerbs, the drawn racing line coloured by speed, and the yellow car -->
+  <defs>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="hsl(120 88% 54%)"/>
+      <stop offset=".5" stop-color="hsl(60 88% 54%)"/>
+      <stop offset="1" stop-color="hsl(0 88% 54%)"/>
+    </linearGradient>
+  </defs>
+  <rect x="56" y="136" width="400" height="240" rx="120" fill="none" stroke="#ece8da" stroke-width="112"/>
+  <rect x="56" y="136" width="400" height="240" rx="120" fill="none" stroke="#d6443a" stroke-width="112" stroke-dasharray="22 22"/>
+  <rect x="56" y="136" width="400" height="240" rx="120" fill="none" stroke="#4a4e56" stroke-width="92"/>
+  <path d="M110 256 C110 170 170 140 256 150 C350 160 420 170 410 256 C400 340 330 360 256 356" fill="none" stroke="url(#line)" stroke-width="14" stroke-linecap="round"/>
+  <g transform="translate(256 356) rotate(180) scale(2.6)">
+    <g fill="#15171a"><rect x="-11" y="-9" width="7" height="3"/><rect x="-11" y="6" width="7" height="3"/><rect x="5" y="-9" width="7" height="3"/><rect x="5" y="6" width="7" height="3"/></g>
+    <rect x="-13" y="-7" width="26" height="14" rx="4" fill="#ffd23d" stroke="rgba(0,0,0,.55)" stroke-width="1.5"/>
+    <rect x="1" y="-5" width="6" height="10" fill="rgba(20,30,40,.85)"/>
+  </g>
+</svg>

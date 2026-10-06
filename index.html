@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#2f6a3a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trace Racer">
+<title>Trace Racer</title>
+<meta name="description" content="Draw your racing line in one stroke, then watch your car drive it. Your drawing speed becomes the car's speed.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Trace Racer">
+<meta property="og:description" content="Draw your racing line in one stroke, then watch your car drive it. Your drawing speed becomes the car's speed.">
+<meta property="og:url" content="https://traceracer.tomtebo.org/">
+<meta property="og:image" content="https://traceracer.tomtebo.org/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hidden">
+  <div><span id="hud-lap">Lap 1/3</span><span id="hud-pos">Pos 1/5</span></div>
+  <div style="display:flex;align-items:center;gap:.6rem"><span id="hud-time" style="margin:0">0.00</span><button id="btn-quit" aria-label="Back to track select">✕</button></div>
+</div>
+<div id="msg"></div>
+
+<div id="title" class="screen show">
+  <div class="panel">
+    <h1>Trace Racer</h1>
+    <p>Draw your racing line in one stroke, then watch your car drive it. Your drawing speed becomes the car's speed: go fast on the straights, slow for the corners. Overdo it and you'll skid wide.</p>
+    <div class="legend"><span>slow</span><i></i><span>fast</span></div>
+    <div class="row"><span class="lbl">Laps</span>
+      <button data-laps="1">1</button><button data-laps="2">2</button><button data-laps="3" class="on">3</button>
+    </div>
+    <div id="tracks" class="cards"></div>
+  </div>
+</div>
+
+<div id="results" class="screen">
+  <div class="panel">
+    <h2 id="res-title">Finished</h2>
+    <div class="result-line">Position <strong id="res-pos">1</strong> of <span id="res-n">5</span></div>
+    <div class="result-line">Time <strong id="res-time">0.00</strong> s</div>
+    <div class="result-line" id="res-best"></div>
+    <div class="row">
+      <button id="btn-replay" class="primary">Race this line again</button>
+      <button id="btn-redraw">Draw a new line</button>
+      <button id="btn-tracks">Change track</button>
+      <button id="btn-share">Share this line</button>
+    </div>
+  </div>
+</div>
+
+<div id="rotate">Turn your phone sideways to race</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
