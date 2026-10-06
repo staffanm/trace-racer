@@ -5,6 +5,7 @@ import './style.css';
 // ---------- constants ----------
 const WW = 1920, WH = 1080;     // world frame: 16:9, each track is stretched to fill it
 const TW = 100;                 // reference track width (each track point carries its own)
+const CAR_SCALE = 1.35;          // cars are drawn this much larger than the 32x20 sprite size; physics is unchanged
 const DS = 5;                   // centerline sample spacing
 const PDS = 4;                  // player path sample spacing
 const PH = { vmax: 1050, accel: 620, brake: 1250, aLat: 460, grassMax: 60, minLine: 50, drawGain: 1.3, kDead: 0.0012 };
@@ -548,8 +549,8 @@ function rr(c, x, y, w, h, r) {
 }
 function drawCar(c, car, pulse) {
   const h = car.air > 0 ? Math.sin(Math.PI * (1 - car.air / car.airTotal)) : 0; // 0..1 height while airborne
-  if (h > 0) { c.save(); c.translate(car.x + 10 * h, car.y + 14 * h); c.rotate(car.ang); c.fillStyle = 'rgba(0,0,0,.35)'; rr(c, -13, -7, 26, 14, 4); c.fill(); c.restore(); }
-  c.save(); c.translate(car.x, car.y); c.rotate(car.ang); c.scale(1 + 0.45 * h, 1 + 0.45 * h);
+  if (h > 0) { c.save(); c.translate(car.x + 10 * h, car.y + 14 * h); c.rotate(car.ang); c.scale(CAR_SCALE, CAR_SCALE); c.fillStyle = 'rgba(0,0,0,.35)'; rr(c, -13, -7, 26, 14, 4); c.fill(); c.restore(); }
+  c.save(); c.translate(car.x, car.y); c.rotate(car.ang); c.scale(CAR_SCALE * (1 + 0.45 * h), CAR_SCALE * (1 + 0.45 * h));
   if (pulse !== undefined) {
     c.beginPath(); c.arc(0, 0, 28 + 6 * Math.sin(pulse * 4), 0, Math.PI * 2);
     c.strokeStyle = 'rgba(255,210,61,.8)'; c.lineWidth = 3; c.stroke();
@@ -721,6 +722,11 @@ $('btn-quit').addEventListener('click', goTitle);
 async function goFull() {
   try { if (!document.fullscreenElement && document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch (e) {}
   try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (e) {}
+}
+
+// the portrait overlay: on a touch device ask for a turn, on a desktop ask for a wider window
+if (!matchMedia('(pointer: coarse)').matches) {
+  $('rotate').textContent = screen.width > screen.height ? 'Maximize your browser to race' : 'Make your browser wider to race';
 }
 
 resize();
