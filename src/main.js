@@ -3,17 +3,17 @@ import '@fontsource/chakra-petch/700.css';
 import './style.css';
 
 // ---------- constants ----------
-const WW = 2000, WH = 900;      // world size
+const WW = 1920, WH = 1080;     // world frame: 16:9, each track is stretched to fill it
 const TW = 100;                 // reference track width (each track point carries its own)
 const DS = 5;                   // centerline sample spacing
 const PDS = 4;                  // player path sample spacing
 const PH = { vmax: 1050, accel: 620, brake: 1250, aLat: 460, grassMax: 60, minLine: 50, drawGain: 1.3, kDead: 0.0012 };
 // rivals: skill scales the ideal speed profile; wild is how often driving over the limit ends in a spin
 const RIVALS = [
-  { name: 'Steady',   color: '#36c27a', skill: 0.96, wild: 0 },
-  { name: 'Balanced', color: '#3d8cf0', skill: 1.0,  wild: 0 },
-  { name: 'Hotshot',  color: '#b05de0', skill: 1.05, wild: 0.9 },
-  { name: 'Reckless', color: '#e8463c', skill: 1.1,  wild: 1.6 },
+  { name: 'Steady', sprite: 'steady',   color: '#36c27a', skill: 0.96, wild: 0 },
+  { name: 'Balanced', sprite: 'balanced', color: '#3d8cf0', skill: 1.0,  wild: 0 },
+  { name: 'Hotshot', sprite: 'hotshot',  color: '#b05de0', skill: 1.05, wild: 0.9 },
+  { name: 'Reckless', sprite: 'reckless', color: '#e8463c', skill: 1.1,  wild: 1.6 },
 ];
 // surfaces: grip scales cornering limit, acc/brk scale pedal response, spring/damp shape how a slide recovers
 const SURF = {
@@ -146,7 +146,26 @@ function buildTrack(def) {
   }
   return { def, cl, n, L, k, prof, path, edgeL, edgeR, ring, bbox, left, right, surf, jumps, runs };
 }
-const BUILT = TRACKS.map(buildTrack);
+// Stretch a track so its bounding box (kerbs included) fills the WW x WH frame. Widths scale with the smaller axis.
+function fitToFrame(def) {
+  let pts = def.pts;
+  for (let pass = 0; pass < 3; pass++) {
+    const bb = buildTrack({ ...def, pts }).bbox, sx = WW / bb.w, sy = WH / bb.h, sw = Math.min(sx, sy);
+    pts = pts.map(([x, y, w, c]) => [(x - bb.x) * sx, (y - bb.y) * sy, w * sw, c]);
+  }
+  return { ...def, pts };
+}
+const BUILT = TRACKS.map(d => buildTrack(fitToFrame(d)));
+
+// ---------- bitmap art (art/ in the repository; the game draws flat shapes until an image has loaded) ----------
+const ART_SCALE = 2560 / WW;    // the track images are 2560x1440 pixels
+function loadImg(src, onload) { const im = new Image(); if (onload) im.onload = onload; im.src = src; return im; }
+const ready = im => im && im.complete && im.naturalWidth > 0;
+const TRACK_ART = TRACKS.map((t, i) => ({
+  main: loadImg(`./art/track-${i}.webp`, () => { if (phase === 'title') buildCards(); }),
+  tile: loadImg(`./art/texture-${i}.webp`),
+}));
+const CAR_ART = Object.fromEntries(['player', 'steady', 'balanced', 'hotshot', 'reckless'].map(k => [k, loadImg(`./art/car-${k}.png`)]));
 
 // ---------- canvas / view ----------
 const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
@@ -160,10 +179,9 @@ function resize() {
   view.w = r.width; view.h = r.height; view.dpr = Math.min(window.devicePixelRatio || 1, 3);
   canvas.width = lineCanvas.width = Math.max(1, Math.round(r.width * view.dpr));
   canvas.height = lineCanvas.height = Math.max(1, Math.round(r.height * view.dpr));
-  const pad = 4, bb = track.bbox;
-  view.scale = Math.min((r.width - pad * 2) / bb.w, (r.height - pad * 2) / bb.h);
-  view.ox = (r.width - bb.w * view.scale) / 2 - bb.x * view.scale;
-  view.oy = (r.height - bb.h * view.scale) / 2 - bb.y * view.scale;
+  view.scale = Math.min(r.width / WW, r.height / WH);
+  view.ox = (r.width - WW * view.scale) / 2;
+  view.oy = (r.height - WH * view.scale) / 2;
   redrawLine();
 }
 function toWorld(e) { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left - view.ox) / view.scale, (e.clientY - r.top - view.oy) / view.scale]; }
@@ -194,12 +212,12 @@ function setupRace(preset) {
   cars = []; skids = []; raw = []; drawProg = 0; drawLastI = 0; drawing = false; raceTime = 0;
   ghostRec = []; ghostNext = 0; loadGhost();
   const p0 = gridPos(0, -track.cl[0][2] * 0.25);
-  player = { isPlayer: true, color: '#ffd23d', x: p0.x, y: p0.y, ang: p0.ang, sx: p0.x, sy: p0.y,
+  player = { isPlayer: true, color: '#ffd23d', sprite: 'player', x: p0.x, y: p0.y, ang: p0.ang, sx: p0.x, sy: p0.y,
     s: 0, v: 0, lat: 0, latV: 0, skid: false, air: 0, airTotal: 1, offFrac: 0, off: false, prog: 0, lastI: 0, finished: false, finishTime: null, path: null };
   for (let i = 0; i < 4; i++) {
     const s = -(i + 1) * 32, off = (i % 2 ? -1 : 1) * track.cl[0][2] * 0.25, r = RIVALS[i];
     const g = gridPos(Math.round(s / DS), off);
-    cars.push({ name: r.name, color: r.color, skill: r.skill, wild: r.wild, spin: 0, spinAng: 0, off, offPhase: Math.random() * 6, s, v: 0, prog: s, air: 0, airTotal: 1, lastI: mod(Math.round(s / DS), track.n),
+    cars.push({ name: r.name, color: r.color, sprite: r.sprite, skill: r.skill, wild: r.wild, spin: 0, spinAng: 0, off, offPhase: Math.random() * 6, s, v: 0, prog: s, air: 0, airTotal: 1, lastI: mod(Math.round(s / DS), track.n),
       x: g.x, y: g.y, ang: g.ang, finished: false, finishTime: null });
   }
   cars.unshift(player);
@@ -326,13 +344,13 @@ async function encodeLine(path, ti, l) {
   let payload = body, flags = 0;
   if (typeof CompressionStream !== 'undefined') { try { const z = await deflate(body); if (z.length < body.length) { payload = z; flags = 1; } } catch (e) {} }
   const out = new Uint8Array(8 + payload.length);
-  out.set([2, ti, l, flags, x0 & 255, x0 >> 8, y0 & 255, y0 >> 8]); out.set(payload, 8);
+  out.set([3, ti, l, flags, x0 & 255, x0 >> 8, y0 & 255, y0 >> 8]); out.set(payload, 8);
   return b76encode(out);
 }
 async function decodeLine(code) {
   try {
     const b = b76decode(code);
-    if (b[0] !== 2 || b[1] >= TRACKS.length || b[2] < 1 || b[2] > 3 || b.length < 10) return null;
+    if (b[0] !== 3 || b[1] >= TRACKS.length || b[2] < 1 || b[2] > 3 || b.length < 10) return null;
     let body = b.subarray(8);
     if (b[3] & 1) { if (typeof DecompressionStream === 'undefined') return { error: 'This browser cannot read compressed lines' }; body = await inflate(body); }
     const n = body.length >> 1;
@@ -351,7 +369,7 @@ async function shareUrl() { return location.href.split('#')[0] + '#l=' + await e
 
 // ---------- ghost (previous best run) ----------
 let ghost = null, ghostRec = [], ghostNext = 0;
-function ghostKey() { return `trace-racer-ghost-${trackIdx}-${laps}`; }
+function ghostKey() { return `trace-racer-v2-ghost-${trackIdx}-${laps}`; }
 function loadGhost() {
   ghost = null;
   try { const g = JSON.parse(localStorage.getItem(ghostKey())); if (g && g.length > 2) ghost = g; } catch (e) {}
@@ -500,7 +518,7 @@ function updateHud(force) {
   $('hud-pos').textContent = phase === 'race' ? `Pos ${pos}/${cars.length}` : (phase === 'draw' ? 'Drawing' : '');
   $('hud-time').textContent = phase === 'draw' ? '' : raceTime.toFixed(2);
 }
-function bestKey() { return `trace-racer-best-${trackIdx}-${laps}`; }
+function bestKey() { return `trace-racer-v2-best-${trackIdx}-${laps}`; }
 function showResults() {
   phase = 'results';
   const pos = position(), time = player.finishTime;
@@ -536,6 +554,7 @@ function drawCar(c, car, pulse) {
     c.beginPath(); c.arc(0, 0, 28 + 6 * Math.sin(pulse * 4), 0, Math.PI * 2);
     c.strokeStyle = 'rgba(255,210,61,.8)'; c.lineWidth = 3; c.stroke();
   }
+  if (ready(CAR_ART[car.sprite])) { c.drawImage(CAR_ART[car.sprite], -16, -10, 32, 20); c.restore(); return; }
   c.fillStyle = '#15171a';
   c.fillRect(-11, -9, 7, 3); c.fillRect(-11, 6, 7, 3); c.fillRect(5, -9, 7, 3); c.fillRect(5, 6, 7, 3);
   rr(c, -13, -7, 26, 14, 4); c.fillStyle = car.color; c.fill(); c.strokeStyle = 'rgba(0,0,0,.55)'; c.lineWidth = 1.5; c.stroke();
@@ -565,21 +584,28 @@ function drawTrackBody(c, t) {
 }
 function render(now) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const art = TRACK_ART[trackIdx];
+  if (ready(art.main)) {
+    // the ground texture fills the screen, lined up with the main image so its faded edges meet the tile
+    ctx.fillStyle = bgColor;
+    if (ready(art.tile)) {
+      const pat = ctx.createPattern(art.tile, 'repeat'), k = view.dpr * view.scale / ART_SCALE;
+      pat.setTransform(new DOMMatrix([k, 0, 0, k, view.dpr * view.ox, view.dpr * view.oy]));
+      ctx.fillStyle = pat;
+    }
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    applyWorldTransform(ctx);
+    ctx.drawImage(art.main, 0, 0, WW, WH);
+  } else {
   ctx.fillStyle = bgColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   applyWorldTransform(ctx);
   // mown stripes
   ctx.fillStyle = 'rgba(255,255,255,.035)';
   for (let x = -400; x < WW + 400; x += 160) ctx.fillRect(x, -400, 80, WH + 800);
-  if (track.def.stadium) {
-    const bb = track.bbox, pad = 6, R = 60;
-    ctx.fillStyle = '#6b6f78'; rr(ctx, bb.x - pad - 70, bb.y - pad - 70, bb.w + 2 * pad + 140, bb.h + 2 * pad + 140, R + 70); ctx.fill();
-    ctx.fillStyle = '#8d919b';
-    for (let q = 0; q < 4; q++) { ctx.globalAlpha = 0.5; rr(ctx, bb.x - pad - 60 + q * 15, bb.y - pad - 60 + q * 15, bb.w + 2 * pad + 120 - q * 30, bb.h + 2 * pad + 120 - q * 30, R + 60 - q * 15); ctx.stroke(); }
-    ctx.globalAlpha = 1; ctx.strokeStyle = '#2c2e33'; ctx.lineWidth = 2;
-    ctx.fillStyle = '#9a7a55'; rr(ctx, bb.x - pad, bb.y - pad, bb.w + 2 * pad, bb.h + 2 * pad, R); ctx.fill();
-  }
+  if (track.def.stadium) { ctx.fillStyle = '#9a7a55'; ctx.fillRect(0, 0, WW, WH); }
   drawTrackBody(ctx, track);
+  }
   // skid marks
   ctx.fillStyle = '#1c1c1c';
   for (const s of skids) { ctx.globalAlpha = s.a * 0.55; ctx.beginPath(); ctx.arc(s.x, s.y, 2.6, 0, Math.PI * 2); ctx.fill(); }
@@ -626,13 +652,13 @@ function frame(now) {
 
 // ---------- UI ----------
 function unlockedCount() { try { return clamp(parseInt(localStorage.getItem('trace-racer-unlocked') || '1', 10) || 1, 1, TRACKS.length); } catch (e) { return 1; } }
-function bestFor(i, l) { try { const v = parseFloat(localStorage.getItem(`trace-racer-best-${i}-${l}`)); return isNaN(v) ? null : v; } catch (e) { return null; } }
+function bestFor(i, l) { try { const v = parseFloat(localStorage.getItem(`trace-racer-v2-best-${i}-${l}`)); return isNaN(v) ? null : v; } catch (e) { return null; } }
 function drawThumb(cv, t) {
-  const c = cv.getContext('2d'), W = cv.width, H = cv.height, bb = t.bbox;
-  const sc = Math.min((W - 10) / bb.w, (H - 10) / bb.h);
-  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H);
-  c.setTransform(sc, 0, 0, sc, (W - bb.w * sc) / 2 - bb.x * sc, (H - bb.h * sc) / 2 - bb.y * sc);
-  drawTrackBody(c, t);
+  const c = cv.getContext('2d'), sc = cv.width / WW;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height);
+  c.setTransform(sc, 0, 0, sc, 0, 0);
+  const art = TRACK_ART[BUILT.indexOf(t)].main;
+  if (ready(art)) c.drawImage(art, 0, 0, WW, WH); else drawTrackBody(c, t);
 }
 const tracksEl = $('tracks');
 function buildCards() {
@@ -641,7 +667,7 @@ function buildCards() {
   TRACKS.forEach((t, i) => {
     const locked = i >= unlocked;
     const b = document.createElement('button'); b.className = 'card' + (locked ? ' locked' : '');
-    const cv = document.createElement('canvas'); cv.width = 300; cv.height = 150; drawThumb(cv, BUILT[i]);
+    const cv = document.createElement('canvas'); cv.width = 320; cv.height = 180; drawThumb(cv, BUILT[i]);
     const name = document.createElement('div'); name.className = 'name'; name.textContent = t.name;
     const sub = document.createElement('div'); sub.className = 'sub';
     const best = bestFor(i, laps);

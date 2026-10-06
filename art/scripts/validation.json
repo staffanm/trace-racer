@@ -1,0 +1,154 @@
+{
+  "tracks": [
+    {
+      "track": 0,
+      "size": [
+        2560,
+        1440
+      ],
+      "kerb_max_error_px": 0.0,
+      "opaque_road": true,
+      "tile_size": [
+        512,
+        512
+      ],
+      "tile_edge_difference": 0,
+      "offroad_fade_width_px": 64,
+      "margin_color_difference": 0,
+      "cyan_contour_matches_mask": true,
+      "jump_ramps": 0
+    },
+    {
+      "track": 1,
+      "size": [
+        2560,
+        1440
+      ],
+      "kerb_max_error_px": 2.23606797749979,
+      "opaque_road": true,
+      "tile_size": [
+        512,
+        512
+      ],
+      "tile_edge_difference": 0,
+      "offroad_fade_width_px": 64,
+      "margin_color_difference": 0,
+      "cyan_contour_matches_mask": true,
+      "jump_ramps": 0
+    },
+    {
+      "track": 2,
+      "size": [
+        2560,
+        1440
+      ],
+      "kerb_max_error_px": 0.0,
+      "opaque_road": true,
+      "tile_size": [
+        512,
+        512
+      ],
+      "tile_edge_difference": 0,
+      "offroad_fade_width_px": 64,
+      "margin_color_difference": 0,
+      "cyan_contour_matches_mask": true,
+      "jump_ramps": 0
+    },
+    {
+      "track": 3,
+      "size": [
+        2560,
+        1440
+      ],
+      "kerb_max_error_px": 0.0,
+      "opaque_road": true,
+      "tile_size": [
+        512,
+        512
+      ],
+      "tile_edge_difference": 0,
+      "offroad_fade_width_px": 64,
+      "margin_color_difference": 0,
+      "cyan_contour_matches_mask": true,
+      "jump_ramps": 3
+    }
+  ],
+  "cars": [
+    {
+      "name": "player",
+      "size": [
+        128,
+        80
+      ],
+      "opaque_ink_fraction": 0.428,
+      "bounds": [
+        8,
+        6,
+        120,
+        74
+      ],
+      "transparent_background": true
+    },
+    {
+      "name": "steady",
+      "size": [
+        128,
+        80
+      ],
+      "opaque_ink_fraction": 0.404,
+      "bounds": [
+        4,
+        8,
+        124,
+        72
+      ],
+      "transparent_background": true
+    },
+    {
+      "name": "balanced",
+      "size": [
+        128,
+        80
+      ],
+      "opaque_ink_fraction": 0.382,
+      "bounds": [
+        6,
+        7,
+        122,
+        73
+      ],
+      "transparent_background": true
+    },
+    {
+      "name": "hotshot",
+      "size": [
+        128,
+        80
+      ],
+      "opaque_ink_fraction": 0.468,
+      "bounds": [
+        4,
+        4,
+        124,
+        76
+      ],
+      "transparent_background": true
+    },
+    {
+      "name": "reckless",
+      "size": [
+        128,
+        80
+      ],
+      "opaque_ink_fraction": 0.474,
+      "bounds": [
+        6,
+        5,
+        122,
+        75
+      ],
+      "transparent_background": true
+    }
+  ],
+  "status": "passed"
+}
